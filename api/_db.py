@@ -63,7 +63,10 @@ def get_db():
     if DATABASE_URL:
         import psycopg
 
-        conn = psycopg.connect(DATABASE_URL, autocommit=True)
+        # prepare_threshold=None: Neon's pooled URL (PgBouncer) can't use server-side prepared statements
+        conn = psycopg.connect(DATABASE_URL, autocommit=True, prepare_threshold=None)
+    elif os.environ.get("VERCEL"):
+        raise RuntimeError("DATABASE_URL is not set. Connect a Neon database to this Vercel project.")
     else:
         conn = sqlite3.connect(LOCAL_DB_PATH, isolation_level=None)
         conn.execute("PRAGMA foreign_keys = ON")
